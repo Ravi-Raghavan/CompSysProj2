@@ -38,6 +38,8 @@ typedef struct Subset{
     clock_t begin;
     double elapsed;
     clock_t finishTime;
+    int numPrimesProcessed;
+    int highestPrimeProcessed;
 } Subset;
 
 typedef struct Queue{
@@ -213,9 +215,6 @@ int isPrimeNumberInBulletinBoard(int num, Subset * data, int counter){
         return 0;
     }
     int alreadyPresent = HashTable[num];    
-    if(alreadyPresent == 1){
-        addPrimeToBulletinBoard(num, data, counter);
-    }
     return alreadyPresent;
 }
 
@@ -237,6 +236,22 @@ int isPrime(int number){
         }
     }
     return prime;
+}
+
+void testerFunction(){
+    int numPrimes = 0;
+    int highestPrime = -1;
+
+    for(int i = 0; i < arraySize; i ++){
+        if(isPrime(ARRAY[i]) == 1){
+            numPrimes ++;
+            highestPrime = maximum(highestPrime, ARRAY[i]);
+        }
+    }
+
+    fprintf(fptr, "Test Function numPrimes: %d\n", numPrimes);
+    fprintf(fptr, "Test Function highestPrime: %d\n", highestPrime);
+
 }
 
 void * threadFunction(void * arg){
@@ -294,7 +309,7 @@ void * threadFunction(void * arg){
 
         //fprintf(fptr, "Thread %d is going to write to the bulletin board now \n", (int)(pthread_self()));
 
-        if(prime == 1 && alreadyPresent == 0){
+        if((prime == 1 && alreadyPresent == 0) || alreadyPresent == 1){
             addPrimeToBulletinBoard(numToAnalyze, ptr, counter);
             primesProcessed ++;
             highestPrimeProcessed = maximum(highestPrimeProcessed, numToAnalyze);
@@ -314,6 +329,8 @@ void * threadFunction(void * arg){
     double elapsed = ((double)(finishTime - begin)) / CLOCKS_PER_SEC;
     ptr -> elapsed = elapsed;
     ptr -> finishTime = finishTime;
+    ptr -> numPrimesProcessed = primesProcessed;
+    ptr -> highestPrimeProcessed = highestPrimeProcessed;
     addThreadDataToQueue(ptr);
     pthread_exit(NULL);
     return NULL;
@@ -321,8 +338,8 @@ void * threadFunction(void * arg){
 
 int generateRandomOddNumberArray(){
     srand ( time(NULL) );
-    //arraySize = (rand() % 90001) + 10000;
-    arraySize = 100000;
+    arraySize = (rand() % 90001) + 10000;
+    //arraySize = 100000;
     ARRAY = malloc(arraySize * sizeof(int));
     for(int i = 0; i < arraySize; i ++){
         ARRAY[i] = (rand() % 49001) + 1000;
@@ -473,6 +490,15 @@ void * teamFunction(void * arg){
     double elapsed = ((double)(finishTime - begin)) / CLOCKS_PER_SEC;
     ptr -> elapsed = elapsed;
     ptr -> finishTime = finishTime;
+    int numPrimesProcessed = 0;
+    int highestPrimeProcessed = -1;
+    for(int j = 0; j < NUM_THREADS_PER_TEAM; j ++){
+        int ID = NUM_THREADS_PER_TEAM * teamNumber + j;
+        numPrimesProcessed += threadData[ID]->numPrimesProcessed;
+        highestPrimeProcessed = maximum(highestPrimeProcessed, threadData[ID] -> highestPrimeProcessed);
+    }
+    ptr -> numPrimesProcessed = numPrimesProcessed;
+    ptr -> highestPrimeProcessed = highestPrimeProcessed;
     addTeamDataToQueue(ptr);
     pthread_exit(NULL);
     return NULL;
@@ -487,8 +513,14 @@ void generateThreadTeamManagers(){
         return;
     }
     for(int i = 0; i < NUM_TEAMS; i ++){
-        start = end + 1;
-        end =  (arraySize / (NUM_TEAMS)) * (i + 1); 
+        if(i == 0){
+            start = 0;
+            end = start + (arraySize / (NUM_TEAMS)) - 1; 
+        }
+        else{
+            start = end + 1;
+            end = start + (arraySize / (NUM_TEAMS))  - 1; 
+        }  
         if(start > arraySize - 1){
             start = arraySize - 1;
         }
@@ -510,9 +542,20 @@ void generateThreadTeamManagers(){
         pthread_join(teamIDs[i], NULL);
     }
 
+    int primeNumbersIdentified = 0;
+    int highestPrimeNumberIdentified = -1;
+
+    for(int i = 0; i < NUM_TEAMS; i ++){
+        primeNumbersIdentified += teamData[i]-> numPrimesProcessed;
+        highestPrimeNumberIdentified = maximum(highestPrimeNumberIdentified, teamData[i]->highestPrimeProcessed);
+    }
+
     displayBulletinBoard();
     displayThreadFinishTimes();
     displayTeamFinishTimes();
+    fprintf(fptr, "\nNumber of Prime Numbers Identified is: %d\n", primeNumbersIdentified);
+    fprintf(fptr, "Highest Prime Number Identified is: %d\n", highestPrimeNumberIdentified);
+    testerFunction();
 }
 
 void initialize(){
