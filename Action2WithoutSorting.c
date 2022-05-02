@@ -522,6 +522,7 @@ void generateThreadTeamManagers(){
     displayTeamFinishTimes();
     fprintf(fptr, "\nNumber of Prime Numbers Identified is: %d\n", primeNumbersIdentified);
     fprintf(fptr, "Highest Prime Number Identified is: %d\n", highestPrimeNumberIdentified);
+    fprintf(fptr, "Number of Prime Numbers Identified: %d\n", PrimeNumbersStorage -> primeNumbersIdentified);
     testerFunction();
 }
 
