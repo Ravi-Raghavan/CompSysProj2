@@ -276,12 +276,12 @@ void * threadFunction(void * arg){
 
         //fprintf(fptr, "Thread %d is going to write to the bulletin board now \n", (int)(pthread_self()));
 
-        if((prime == 1 && alreadyPresent == 0) || alreadyPresent == 1){
+        if((prime == 1)){
             addPrimeToBulletinBoard(numToAnalyze, ptr, counter);
             primesProcessed ++;
             highestPrimeProcessed = maximum(highestPrimeProcessed, numToAnalyze);
         }
-        else if(prime == 0 && alreadyPresent == 0){
+        else if(prime == 0){
             addNonPrimeNumberToBulletinBoard(numToAnalyze, primesProcessed, highestPrimeProcessed, ptr, counter);
         }
 
