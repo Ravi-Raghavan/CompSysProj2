@@ -137,7 +137,7 @@ void addTeamDataToQueue(Subset * data){
     sem_post(&teamQueueMutexVariable);
 }
 
-void addPrimeToBulletinBoard(int num, Subset * data, int counter){
+void addPrimeToBulletinBoard(int num, int numProcessed, int highestPrime, Subset * data, int counter){
     Node * listFront = PrimeNumbersStorage -> primeNumbersFound;
     Node * ptr = listFront;
     
@@ -277,7 +277,7 @@ void * threadFunction(void * arg){
         //fprintf(fptr, "Thread %d is going to write to the bulletin board now \n", (int)(pthread_self()));
 
         if((prime == 1)){
-            addPrimeToBulletinBoard(numToAnalyze, ptr, counter);
+            addPrimeToBulletinBoard(numToAnalyze, primesProcessed, highestPrimeProcessed, ptr, counter);
             primesProcessed ++;
             highestPrimeProcessed = maximum(highestPrimeProcessed, numToAnalyze);
         }
@@ -382,7 +382,7 @@ void displayBulletinBoard(){
     fprintf(fptr, "\n\n-------Prime Numbers Identified--------\n");
     listFront = PrimeNumbersStorage -> primeNumbersFound;
     ptr = listFront;
-    str = "Value: %d, Located At Index: %d, Identified By Team: %d, Identified by Thread: %d, ThreadID that Identified this value: %d\n";
+    str = "Value: %d, Located At Index: %d, Identified By Team: %d, Identified by Thread: %d, ThreadID that Identified this value: %d, Highest Prime Identified Before: %d, Num Primes Before: %d\n";
     while(ptr != NULL){
         fprintf(fptr,str, ptr ->value, ptr -> index, ptr ->teamNumber, ptr -> threadNumber, ptr -> threadID,  ptr -> highestPrimeNumber, ptr -> numPrimeNumbers);
         ptr = ptr -> nextNode;
